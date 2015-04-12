@@ -1,0 +1,26 @@
+#include "mbed.h"
+DigitalOut p(p18);
+
+int main() {
+    int *p;
+    p=0;
+    while(1) {
+        *p = 1;
+        // wait(0.9);
+        *p = 0;
+        // wait(0.9);
+    }
+}
+
+/*
+Program compiles ok in online mbed compiler, but not on the ARM toolchain due to setup issues.
+Assigned Pin 18 
+From Documentation:
+Memory address: 0x2009 C000 to 0x2009 FFFF
+ FIO0DIR =    0x4002 C004
+ FIO1CLR  =   0x2009 C01C to 0x2009 C09C ?
+ FIO1SET =    0x2009 C018 to 0x2009 C098 ?
+ FIO2MASK2 =  0x2009 C052 ?
+ FIO2PIN =    0x2009 C054 ?
+ 
+*/
