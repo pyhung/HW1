@@ -42,6 +42,7 @@ Disassembly of section .text.startup.main:
    6:	6013      	str	r3, [r2, #0]  // this instruction stores the register 3 at byte address r2+0
    8:	61d3      	str	r3, [r2, #28] // this instruction stores the register 3 at byte address r2+28
    a:	e7fe      	b.n	a <main+0xa> // this is a branch instruction that the .N width specifier forces the assembler to generate 16-bit encoding points back to 0xa
+                        // I think that this operation is telling the compiler to go back to instruction 0 to repeat the while loop.
    c:	2009c040 	.word	0x2009c040 // Allocate four-byte blocks of memory, and specify the to be 0x2009c040
    
    HW1 took more than 15 hours to complete. I encountered the most problems getting the ARM bare metal toolchain to compile correctly.
