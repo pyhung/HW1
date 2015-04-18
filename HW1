@@ -1,26 +1,63 @@
 #include "mbed.h"
-DigitalOut p(p18);
 
-int main() {
-    int *p;
-    p=0;
+/* pin 18 on the mbed board is memory mapped to port P0.26 of LPC1768 */
+
+#define PIN_18 0x80000000        /* this is the mask to be used in referring to p18 on the mbed board */
+#define FIO2DIR     (*((unsigned int *) 0x2009C040))       /* output control register */
+#define FIO2CLR     (*((unsigned int *) 0x2009C05C))       /* clear output clear register */
+#define FIO2SET     (*((unsigned int *) 0x2009C098))       /* set output set register */
+//unsigned int *ClearOutputDataReg = (unsigned int *)0xfffff434;
+
+int main()
+{
+    /* p18 initialization */
+    FIO2DIR = PIN_18;   /* set p18 direction */
+    FIO2CLR = PIN_18;   /* set p18 to 0 */
+
     while(1) {
-        *p = 1;
-        // wait(0.9);
-        *p = 0;
-        // wait(0.9);
+        FIO2SET = PIN_18;   /* p18 = 1 */
+        FIO2CLR = PIN_18;   /* p18 = 0 */
     }
 }
-
-/*
-Program compiles ok in online mbed compiler, but not on the ARM toolchain due to setup issues.
-Assigned Pin 18 
-From Documentation:
-Memory address: 0x2009 C000 to 0x2009 FFFF
- FIO0DIR =    0x4002 C004
- FIO1CLR  =   0x2009 C01C to 0x2009 C09C ?
- FIO1SET =    0x2009 C018 to 0x2009 C098 ?
- FIO2MASK2 =  0x2009 C052 ?
- FIO2PIN =    0x2009 C054 ?
  
-*/
+ /* updated code compiles on mbed online compiler and on ARM bare metal toolchain ok.
+ Below is object dump from compiled code
+ *****
+***** You must modify vector checksum value in *.bin and *.hex files.
+*****
+
+arm-none-eabi-size HW1.elf
+   text	   data	    bss	    dec	    hex	filename
+  27032	    176	    548	  27756	   6c6c	HW1.elf
+user@ubuntu:/mnt/hgfs/mbed/HW1/HW1$ arm-none-eabi-objdump -d main.o
+
+main.o:     file format elf32-littlearm
+
+
+Disassembly of section .text.startup.main:
+
+00000000 <main>:
+   0:	4a02      	ldr	r2, [pc, #8]	; (c <main+0xc>) // this instruction loads an address to a register
+   2:	f04f 4300 	mov.w	r3, #2147483648	; 0x80000000  // this instruction moves a word to a register through the mask
+   6:	6013      	str	r3, [r2, #0]  // this instruction stores the register 3 at byte address r2+0
+   8:	61d3      	str	r3, [r2, #28] // this instruction stores the register 3 at byte address r2+28
+   a:	e7fe      	b.n	a <main+0xa> // this is a branch instruction that the .N width specifier forces the assembler to generate 16-bit encoding points back to 0xa
+   c:	2009c040 	.word	0x2009c040 // Allocate four-byte blocks of memory, and specify the to be 0x2009c040
+   
+   HW1 took more than 15 hours to complete. I encountered the most problems getting the ARM bare metal toolchain to compile correctly.
+   Most of my software was already preinstalled on my VMWare player from previous projects. 
+   To get around the toolchain compile problems, I did the following:
+   I imported the HelloWorld program to the mbed compiler.
+   Updated the mbed library. This was required because the libraries were out of date apparently and was one of the principal root causes of my issues. Not having the required PATH settings was the other issue. 
+   Compiled the HelloWorld program.
+   Exported the program to the ARM Gcc.
+   Unzipped the file.
+   Said a short prayer for it to work.
+   Executed make at the prompt.
+   Ran the object dump command to view the assembly code.
+   This is probably the BKM moving forward for starting all other homework assignments.
+   
+   
+   
+   
+   */
